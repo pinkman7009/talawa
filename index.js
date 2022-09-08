@@ -32,14 +32,18 @@ const GroupChatMessage = require('./lib/resolvers/GroupChatMessage');
 const Subscription = require('./lib/resolvers/Subscription');
 const AuthenticationDirective = require('./lib/directives/authDirective');
 const RoleAuthorizationDirective = require('./lib/directives/roleDirective');
+const { Upload, graphqlUploadExpress } = require('graphql-upload');
 
 const app = express();
 
 app.use(requestTracing.middleware());
+app.use(express.json());
+app.use(graphqlUploadExpress({ maxFileSize: 10000, maxFiles: 10 }));
 
 const pubsub = new PubSub();
 
 const resolvers = {
+  Upload,
   Subscription: Subscription,
   Query,
   Mutation,
@@ -113,6 +117,7 @@ const apolloServer = new ApolloServer({
     auth: AuthenticationDirective,
     role: RoleAuthorizationDirective,
   },
+  uploads: false,
   context: ({ req, res, connection }) => {
     if (connection) {
       return {
